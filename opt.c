@@ -398,7 +398,7 @@ static void make_simulator(double j, double u, double p[], double e[], int n, lo
     bool period4 = true;
     int sysnc_count = 0;
 
-    bool depend1;
+    bool depend1; // priority
     bool depend2;
     bool depend3;
     bool depend4;
