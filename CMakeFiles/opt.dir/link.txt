@@ -1,0 +1,1 @@
+/usr/bin/cc    CMakeFiles/opt.dir/opt.c.o  -o opt  -lm 
