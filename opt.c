@@ -402,26 +402,24 @@ static void make_simulator(double j, double u, double p[], double e[], int n, lo
     int cycle = 0;
     int task_count = 0;
     int cycle_count = 0;
-    bool period1 = true;
-    bool period2 = true;
-    bool period3 = true;
-    bool period4 = true;
+    int delay_time = 0;
+    int sub_delay_time = 0;
+    bool period1 = false;
+    bool period2 = false;
+    bool period3 = false;
+    bool period4 = false;
     int sysnc_count = 0;
 
-    bool depend1; // priority
-    bool depend2;
-    bool depend3;
-    bool depend4;
+    bool depend1 = false; // priority
+    bool depend2 = false;
+    bool depend3 = false;
+    bool depend4 = false;
 
     for (i = 1; i <= n+1; i++) {
 	al_execution += e[i];
-	//runnable -> period
-	//runnable -> exevution time
-	//runnable -> dag dependency
-
     }
     printf("Total Execution Time : %-3.2f \n", al_execution);
-    printf("        Total period : %-3.2f \n", al_period);
+    // printf("        Total period : %-3.2f \n", al_period);
 
     while (count < 100){
 	    printf("now time : %d ms       sysnc_time : %d    \n", count, sysnc_count);
@@ -438,178 +436,137 @@ static void make_simulator(double j, double u, double p[], double e[], int n, lo
 		    period4 = true; 
 	    }
 	    printf(" %d %d %d %d\n", period1, period2, period3, period4);
-	    if (count == sysnc_count) {
-		    if (period1 == true) {
-			    cycle_count = cycle_count + e[1];
-			    sysnc_count = sysnc_count + e[1];
-			    period1 = false;
-			    task_count ++;
-			    struct task task_sequence;
-			    task_sequence.start_time = count;
-			    task_sequence.delay_time = e[1];
-			    task_sequence.runnable1 = true;
-			    period1 = false;
-		    }
-		    else if (period2 == true) {
-			    cycle_count = cycle_count + e[2];
-			    sysnc_count = sysnc_count + e[2];
-			    period2 = false;
-			    printf("run 2\n");
-			    count ++;
-			    task_sequence.delay_time += e[2];
-			    task_sequence.runnable2 = true;
+
+	    if (sysnc_count == count) { 
+		    printf("sysnc\n");
+		    if (period1 == 1) {
+			    if (depend1 == false) {
+				    depend1 = true;
+				    cycle_count = 0 + e[1];
+				    sysnc_count = sysnc_count + e[1];
+				    period1 = false;
+				    printf("just run 1\n");
+				    count ++;
+			    }
+			    else if ((depend1 == true) && (depend2 == true)) {
+				    cycle_count = cycle_count + e[1];
+				    sysnc_count = sysnc_count + e[1];
+				    sub_delay_time += e[1]; // sub delay timer start
+				    period1 = false;
+				    printf("twice run 1\n");
+				    count ++;
+			    }
+			    else if ((depend1 == true) && (depend2 == false)) {
+				    depend1 = true;
+				    cycle_count = 0 + e[1];
+				    sysnc_count = sysnc_count + e[1];
+				    period1 = false;
+				    printf("renew run 1\n");
+				    count ++;
+			    }
 		    }
 
-		    else if (period3 == true) {
-			    cycle_count = cycle_count + e[3];
-			    sysnc_count = sysnc_count + e[3];
-			    period3 = false;
-			    printf("run 3\n");
-			    count ++;
-			    task_sequence.delay_time += e[3];
-			    task_sequence.runnable3 = true;
+		    else if (period2 == 1) {
+			    if ((depend2 == false) && (depend1 == true)) {
+				    depend2 = true;
+				    cycle_count = cycle_count + e[2];
+				    sysnc_count = sysnc_count + e[2];
+				    period2 = false;
+				    printf("run 2\n");
+				    count ++;
+				    if (sub_delay_time) {
+					    sub_delay_time += e[2];
+				    }
+			    }
+			    else if (depend2 == true) {
+				    cycle_count += e[2];
+				    sysnc_count += e[2];
+				    period2 = false;
+				    printf("run 2 again\n");
+				    count ++;
+				    if (sub_delay_time) {
+					    sub_delay_time += e[2];
+				    }
+			    }
+			    else {
+				    cycle_count += e[2];
+				    sysnc_count += e[2];
+				    period2 = false;
+				    count ++;
+			    }
 		    }
 
-		    else if (period4 == true) {
-			    cycle_count = cycle_count + e[4];
-			    sysnc_count = sysnc_count + e[4];
-			    period4 = false;
-			    printf("run 4\n");
-			    count ++;
-			    task_sequence.delay_time += e[4];
-			    task_sequence.runnable4 = true;
-			    printf("End-to-End Delay : %d\n", task_sequence.delaytime);
-			    cycle_count = 0;
+		    else if (period3 == 1) {
+			    if ((depend3 == false) && (depend2 == true)) {
+				    depend3 = true;
+				    cycle_count = cycle_count + e[3];
+				    sysnc_count = sysnc_count + e[3];
+				    period3 = false;
+				    printf("run 3\n");
+				    count ++;
+				    if (sub_delay_time) {
+					    sub_delay_time += e[3];
+				    }
+			    }
+			    else if (depend3 == true) {
+				    cycle_count += e[3];
+				    sysnc_count += e[3];
+				    period3 = false;
+				    printf("run 3 again\n");
+				    count ++;
+				    if (sub_delay_time) {
+					    sub_delay_time += e[3];
+				    }
+			    }
+			    else {
+				    cycle_count += e[3];
+				    sysnc_count += e[3];
+				    period3 = false;
+				    count ++;
+			    }
 		    }
 
+		    else if (period4 == 1) {
+			    if ((depend4 == false) && (depend3 == true)) {
+				    cycle_count = cycle_count + e[4];
+				    sysnc_count = sysnc_count + e[4];
+				    period4 = false;
+				    printf("run 4\n");
+				    printf("End-to-End Delay : %d\n", cycle_count);
+				    depend1 = false;
+				    depend2 = false;
+				    depend3 = false;
+				    cycle_count = 0;
+				    if (sub_delay_time =! 0) {
+					    depend1 = true;
+					    cycle_count = sub_delay_time + e[4];
+					    sub_delay_time = 0;
+				    }
+				    count ++;
+			    }
+			    else {
+				    cycle_count += e[4];
+				    sysnc_count += e[4];
+				    period4 = false;
+				    count ++;
+			    }
+
+		    }
+
+		    else {
+			    cycle_count ++;
+			    sysnc_count ++;
+			    count ++;
+			    printf("delay 1ms\n");
+		    }
 	    }
-	    count ++;
+	    else if (sysnc_count != count) {
+		    count ++;
+	    }
     }
-    
-    
-//    while (count < 100){
-//	    printf("now time : %d ms       sysnc_time : %d    \n", count, sysnc_count);
-//	    if (count % (int)p[1] == 0) { 
-//		    period1 = true;
-//	    }
-//	    if (count % (int)p[2] == 0) { 
-//		    period2 = true;
-//	    }
-//	    if (count % (int)p[3] == 0) {
-//		    period3 = true; 
-//	    }
-//	    if (count % (int)p[4] == 0) {
-//		    period4 = true; 
-//	    }
-//	    printf(" %d %d %d %d\n", period1, period2, period3, period4);
-//
-//	    if (sysnc_count == count) { 
-//		    printf("sysnc\n");
-//		    if (period1 == 1) {
-//			    cycle_count = cycle_count + e[1];
-//			    sysnc_count = sysnc_count + e[1];
-//			    period1 = false;
-//			    printf("run 1\n");
-//			    count ++;
-//			    continue;
-//		    }
-//		    else if (period2 == 1) {
-//			    cycle_count = cycle_count + e[2];
-//			    sysnc_count = sysnc_count + e[2];
-//			    period2 = false;
-//			    printf("run 2\n");
-//			    count ++;
-//			    continue;
-//		    }
-//		    else if (period3 == 1) {
-//			    cycle_count = cycle_count + e[3];
-//			    sysnc_count = sysnc_count + e[3];
-//			    period3 = false;
-//			    printf("run 3\n");
-//			    count ++;
-//			    continue;
-//		    }
-//		    else if (period4 == 1) {
-//			    cycle_count = cycle_count + e[4];
-//			    sysnc_count = sysnc_count + e[4];
-//			    period4 = false;
-//			    printf("run 4\n");
-//			    printf("End-to-End Delay : %d\n", cycle_count);
-//			    cycle_count = 0;
-//			    count ++;
-//			    continue;
-//		    }
-//
-//		    if ((period1 == 0) && (period2 == 0)  && (period3 == 0) && (period4 == 0)) {
-//			    cycle_count ++;
-//			    sysnc_count ++;
-//			    printf("delay 1ms\n");
-//		    }
-//	    }
-//	    count ++;
-//    }
-
-//
-//    while (count < 100){
-//	    for(int j = 1; j<= 4; j++){
-//		    if (j % 4 == 1) {
-//			    count += e[1];
-//			    cycle_count += e[1];
-////			    else {
-////				    count, cycle_count =+ (p[1]*cycle - count);				    
-////				    
-////				    printf("waiting %f ms\n", (p[1]*cycle - count));
-////				    count += e[1];
-////				    cycle_count += e[1];
-////			    }
-//
-//			    printf("run 1\n");
-//		    }
-//		    else if (j % 4 == 2) {
-//			    count += e[2];
-//			    cycle_count += e[2];
-////			    else {
-////				    count, cycle_count =+ (p[2]*cycle - count);
-////				    printf("waiting %f ms\n", (p[2]*cycle - count));
-////				    count += e[2];
-////				    cycle_count += e[2];
-////			    }
-//				    
-//			    printf("run 2\n");
-//		    }
-//		    else if (j % 4 == 3) {
-//			    count += e[3];
-//			    cycle_count += e[3];
-////			    else {
-////				    count, cycle =+ (p[3]*cycle - count);
-////				    printf("waiting %f ms\n", (p[3]*cycle - count));
-////				    count += e[3];
-////				    cycle_count += e[3];
-////			    }
-//			    printf("run 3\n");
-//		    }
-//		    else if (j % 4 == 0) {
-//			    count += e[4];
-//			    cycle_count += e[4];
-////			    else {
-////				    count, cycle_count =+ (p[4]*cycle - count);
-////				    printf("waiting %f ms\n", (p[4]*cycle - count));
-////				    count += e[4];
-////				    cycle_count += e[4];
-////			    }
-//			    printf("run 4\n");
-//			    printf("End-to-End Delay : %d \n", cycle_count);
-//			    cycle_count = 0;
-//			    cycle++;
-//		    }
-//	    }
-//	    printf("Now Time : %d \n", count);
-//	    
-//    }
-//
-    
     return;
 }
+
 static double jmax(int n)
 {
     return (2 * ALPHA * P_MAX + 2 * BETA * n * P_MAX);
