@@ -289,6 +289,7 @@ loop:
     gettimeofday(&end, NULL);
     timediff(&start, &end, &secs, &usecs);
     show_result("EXHAUSTIVE", min_j, min_j_u, opt_p, n, secs, usecs, o->timing); 
+    make_simulator(jconv(dag_type, p, e), util(p, e, n), p, e, n, secs, usecs);
 
     return 0;
 }
@@ -419,7 +420,7 @@ static void make_simulator(double j, double u, double p[], double e[], int n, lo
     printf("Total Execution Time : %-3.2f \n", al_execution);
     // printf("        Total period : %-3.2f \n", al_period);
 
-    while (count < 5000){
+    while (count < 100){
 	    //printf("  %d ms  \n", count);
 	    if (count % (int)p[1] == 0) { 
 		    period1 = true;
