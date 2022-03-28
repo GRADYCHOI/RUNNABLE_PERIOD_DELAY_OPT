@@ -64,6 +64,7 @@ static double jconv(int dag_type, double p[], double e[]);
 static double util(double p[], double e[], int n);
 static void show_result(const char *method, double j, double u, double p[], int n, long secs, long usecs, int timing);
 static void make_simulator(double j, double u, double p[], double e[], int n, long secs, long usecs); 
+static void make_simulator_dag(double j, double u, double p[], double e[], int n, long secs, long usecs);
 static double jmax(int n);
 static void timediff(struct timeval *start, struct timeval *end, long *secs, long *usecs);
 static void usage(const char *prog);
@@ -226,6 +227,7 @@ static int run_ours(int dag_type, double e[], struct options *o)
 
     show_result("OURS", jconv(dag_type, p, e), util(p, e, n), p, n, secs, usecs, o->timing);
     make_simulator(jconv(dag_type, p, e), util(p, e, n), p, e, n, secs, usecs);
+    //make_simulator_dag(jconv(dag_type, p, e), util(p, e, n), p, e, n, secs, usecs);
     
     return 0;
 }
@@ -393,8 +395,9 @@ static void show_result(const char *method, double j, double u, double p[], int 
     }
     return;
 }
+
 // make period simulator 
-static void make_simulator(double j, double u, double p[], double e[], int n, long secs, long usecs) 
+static void make_simulator_dag(double j, double u, double p[], double e[], int n, long secs, long usecs) 
 {
     int i;
     double al_period;
@@ -420,7 +423,7 @@ static void make_simulator(double j, double u, double p[], double e[], int n, lo
     printf("Total Execution Time : %-3.2f \n", al_execution);
     // printf("        Total period : %-3.2f \n", al_period);
 
-    while (count < 100){
+    while (count < 10000){
 	    //printf("  %d ms  \n", count);
 	    if (count % (int)p[1] == 0) { 
 		    period1 = true;
@@ -534,6 +537,181 @@ static void make_simulator(double j, double u, double p[], double e[], int n, lo
 					    worst_delay = cycle_count;
 				    }
 				    printf("End-to-End Delay : %d\n", cycle_count);
+				    depend1 = false;
+				    depend2 = false;
+				    depend3 = false;
+				    cycle_count = 0;
+				    if (sub_delay_time =! 0) {
+					    depend1 = true;
+					    cycle_count = sub_delay_time + e[4];
+					    sub_delay_time = 0;
+				    }
+				    count ++;
+			    }
+			    else {
+				    cycle_count += e[4];
+				    sysnc_count += e[4];
+				    period4 = false;
+				    count ++;
+			    }
+
+		    }
+
+		    else {
+			    cycle_count ++;
+			    sysnc_count ++;
+			    count ++;
+			    //printf("delay 1ms\n");
+		    }
+	    }
+	    else if (sysnc_count != count) {
+		    count ++;
+	    }
+    }
+    printf("worst case End-to-End Delay : %d ms\n", worst_delay);
+    return;
+}
+// make period simulator 
+static void make_simulator(double j, double u, double p[], double e[], int n, long secs, long usecs) 
+{
+    int i;
+    double al_period;
+    double al_execution;
+    int count = 0;
+    int cycle_count = 0;
+    int sub_delay_time = 0;
+    bool period1 = false;
+    bool period2 = false;
+    bool period3 = false;
+    bool period4 = false;
+    int sysnc_count = 0;
+
+    int worst_delay = 0;
+    bool depend1 = false; // priority
+    bool depend2 = false;
+    bool depend3 = false;
+    bool depend4 = false;
+
+    for (i = 1; i <= n+1; i++) {
+	al_execution += e[i];
+    }
+    printf("Total Execution Time : %-3.2f \n", al_execution);
+    // printf("        Total period : %-3.2f \n", al_period);
+
+    while (count < 10000){
+	    //printf("  %d ms  \n", count);
+	    if (count % (int)p[1] == 0) { 
+		    period1 = true;
+	    }
+	    if (count % (int)p[2] == 0) { 
+		    period2 = true;
+	    }
+	    if (count % (int)p[3] == 0) {
+		    period3 = true; 
+	    }
+	    if (count % (int)p[4] == 0) {
+		    period4 = true; 
+	    }
+	    //printf(" %d %d %d %d\n", period1, period2, period3, period4);
+
+	    if (sysnc_count == count) { 
+		    if (period1 == 1) {
+			    if (depend1 == false) {
+				    depend1 = true;
+				    cycle_count = 0 + e[1];
+				    sysnc_count = sysnc_count + e[1];
+				    period1 = false;
+				    //printf("just run 1\n");
+				    count ++;
+			    }
+			    else if ((depend1 == true) && (depend2 == true)) {
+				    cycle_count = cycle_count + e[1];
+				    sysnc_count = sysnc_count + e[1];
+				    sub_delay_time += e[1]; // sub delay timer start
+				    period1 = false;
+				    //printf("twice run 1\n");
+				    count ++;
+			    }
+			    else if ((depend1 == true) && (depend2 == false)) {
+				    depend1 = true;
+				    cycle_count = 0 + e[1];
+				    sysnc_count = sysnc_count + e[1];
+				    period1 = false;
+				    //printf("renew run 1\n");
+				    count ++;
+			    }
+		    }
+
+		    else if (period2 == 1) {
+			    if ((depend2 == false) && (depend1 == true)) {
+				    depend2 = true;
+				    cycle_count = cycle_count + e[2];
+				    sysnc_count = sysnc_count + e[2];
+				    period2 = false;
+				    //printf("run 2\n");
+				    count ++;
+				    if (sub_delay_time) {
+					    sub_delay_time += e[2];
+				    }
+			    }
+			    else if (depend2 == true) {
+				    cycle_count += e[2];
+				    sysnc_count += e[2];
+				    period2 = false;
+				    //printf("run 2 again\n");
+				    count ++;
+				    if (sub_delay_time) {
+					    sub_delay_time += e[2];
+				    }
+			    }
+			    else {
+				    cycle_count += e[2];
+				    sysnc_count += e[2];
+				    period2 = false;
+				    count ++;
+			    }
+		    }
+
+		    else if (period3 == 1) {
+			    if ((depend3 == false) && (depend2 == true)) {
+				    depend3 = true;
+				    cycle_count = cycle_count + e[3];
+				    sysnc_count = sysnc_count + e[3];
+				    period3 = false;
+				    //printf("run 3\n");
+				    count ++;
+				    if (sub_delay_time) {
+					    sub_delay_time += e[3];
+				    }
+			    }
+			    else if (depend3 == true) {
+				    cycle_count += e[3];
+				    sysnc_count += e[3];
+				    period3 = false;
+				    //printf("run 3 again\n");
+				    count ++;
+				    if (sub_delay_time) {
+					    sub_delay_time += e[3];
+				    }
+			    }
+			    else {
+				    cycle_count += e[3];
+				    sysnc_count += e[3];
+				    period3 = false;
+				    count ++;
+			    }
+		    }
+
+		    else if (period4 == 1) {
+			    if ((depend4 == false) && (depend3 == true)) {
+				    cycle_count = cycle_count + e[4];
+				    sysnc_count = sysnc_count + e[4];
+				    period4 = false;
+				    //printf("run 4\n");
+				    if (worst_delay < cycle_count) {
+					    worst_delay = cycle_count;
+				    }
+				    //printf("End-to-End Delay : %d\n", cycle_count);
 				    depend1 = false;
 				    depend2 = false;
 				    depend3 = false;
