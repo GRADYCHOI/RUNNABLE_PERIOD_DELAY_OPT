@@ -18,38 +18,49 @@ struct model {
     int period;
 };
 
+struct runnable {
+    char namne[20];
+    int property;
+    int execution_type;
+    int execution_time;
+};
+
 struct task {
     int dag;
     int priority;
     int ex_time;
     int period;
+    struct runnable runnable;
 };
 
 enum dag_type {A, B, C, D};
+//enum property {DRP, WP, DSP};
+//enum execution_type {TE, DE};
 
-static int parse_options(int argc, char *argv[], int *dag_type, int e[], struct model *m);
-static int run_mapping(int *dag_type, int e[], struct model *m, struct task *t);
+static int parse_options(int argc, char *argv[], int *dag_type, int e[]);
+static int run_mapping(int dag_type, int e[], long secs, long usecs);
 static int get_n(int dag_type);
 
 int main(int argc, char *argv[]) {
 
-    int e[N_MAX];
+    int e[argc-2];
     int dag_type;
     struct model m;
     struct task t;
     int map;
+    long secs, usecs;
 
-    map = parse_options(argc, argv, &dag_type, e, &m);
+    map = parse_options(argc, argv, &dag_type, e);
 
     if (map == 0) {
-        //map = run_mapping(dag_type, e, &m, &task);
+        map = run_mapping(dag_type, e, secs, usecs);
     }
     else if (map <0) {
         return EXIT_FAILURE;
     }
 }
 
-static int parse_options(int argc, char *argv[], int *dag_type, int e[], struct model *m) {
+static int parse_options(int argc, char *argv[], int *dag_type, int e[]) {
     int i, n, opt;
 
     if (strcmp(argv[optind], "a") == 0 || strcmp(argv[optind], "A") == 0) {
@@ -86,9 +97,9 @@ static int parse_options(int argc, char *argv[], int *dag_type, int e[], struct 
         fprintf(stderr, "%s Type requires %d execution tiems\n", argv[optind -1], n);
         return -1;
     }
-    for (i = 1 ; i <= n ; i++) {
+    for (i = 1 ; i <= argc-2 ; i++) {
         e[i] = atof(argv[optind++]);
-        printf("e%d : %d\n", i, e[i]);
+        printf("%d\n", e[i]);
     }
     return 0;
 }
@@ -108,4 +119,38 @@ static int get_n(int dag_type) {
     default:
         return -1;
     }
+}
+
+static int run_mapping(int dag_type, int e[], long secs, long usecs) {
+    printf("runnable mapping in tasks\n");
+
+    int task1 = 1;
+    int task5 = 5;
+    int task10 = 10;
+    int task20 = 20;
+    int i;
+    int n = get_n(dag_type);
+    printf("%d\n", n);
+    int p[n];
+    for (i = 1 ; i <= n ; i++) {
+        if (e[i] <= task1) {
+            p[i] = task1;
+        }
+        else if ((e[i] > task1) && (e[i] <= task5)) {
+            p[i] = task5;
+        }
+        else if ((e[i] > task5) && (e[i] <= task10)) {
+            p[i] = task10;
+        }
+        else if ((e[i] > task10) && (e[i] <= task20)) {
+            p[i] = task20;
+        }
+        printf("runnable %d's period : %d\n", i, p[i]);
+
+    }
+
+
+
+
+
 }
