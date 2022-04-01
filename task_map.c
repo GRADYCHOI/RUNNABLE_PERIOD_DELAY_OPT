@@ -99,7 +99,6 @@ static int parse_options(int argc, char *argv[], int *dag_type, int e[]) {
     }
     for (i = 1 ; i <= argc-2 ; i++) {
         e[i] = atof(argv[optind++]);
-        printf("%d\n", e[i]);
     }
     return 0;
 }
@@ -130,7 +129,6 @@ static int run_mapping(int dag_type, int e[], long secs, long usecs) {
     int task20 = 20;
     int i;
     int n = get_n(dag_type);
-    printf("%d\n", n);
     int p[n];
     for (i = 1 ; i <= n ; i++) {
         if (e[i] <= task1) {
