@@ -7,6 +7,7 @@
 #include <sys/time.h>
 #include <stdbool.h>
 
+
 /* default options */
 #define N_MAX 20
 
@@ -40,8 +41,8 @@ enum dag_type {A, B, C, D};
 static int parse_options(int argc, char *argv[], int *dag_type, int e[]);
 static int run_mapping(int dag_type, int e[], int p[], long secs, long usecs);
 static int get_n(int dag_type);
-static int mapping_loop(int e[], int p[], int n, int dag_type);
 static int Delay_C(int e[], int p[], int dag_type);
+
 
 int main(int argc, char *argv[]) {
 
@@ -51,6 +52,7 @@ int main(int argc, char *argv[]) {
     struct model m;
     struct task t;
     int map;
+    int delay_c;
     long secs, usecs;
 
 
@@ -59,9 +61,13 @@ int main(int argc, char *argv[]) {
     if (map == 0) {
         map = run_mapping(dag_type, e, p, secs, usecs);
     }
+    if (delay_c == 0) {
+        delay_c = Delay_C(e, p, dag_type);
+    }
     else if (map <0) {
         return EXIT_FAILURE;
     }
+
 }
 
 static int parse_options(int argc, char *argv[], int *dag_type, int e[]) {
@@ -126,43 +132,87 @@ static int get_n(int dag_type) {
 
 static int run_mapping(int dag_type, int e[], int p[], long secs, long usecs) {
     //Runnable mapped roughest period Task.
+    printf("-----------------------------------\n");
     printf("runnable mapping in tasks\n");
 
-    int task1 = 1;
-    int task5 = 5;
-    int task10 = 10;
-    int task20 = 20;
     int i, map;
     int n = get_n(dag_type);
+    double schedule = 0;
+    double utilization = 0;
+    double total_execution_time = 0;
+    double total_period = 0;
+    double update_period = 0;
+    bool opt_period = true;
 
 
     for (i = 1 ; i <= n ; i++) {
-        p[i] = task20;
+        if (e[i] == 1){
+            p[i] = 1;
+        }
+        else if ((e[i] > 1) && (e[i] <= 5)) {
+            p[i] = 5;
+        }
+        else if ((e[i] > 5) && (e[i] <= 10)) {
+            p[i] = 10;
+        }
+        else if ((e[i] > 10) && (e[i] <= 20)) {
+            p[i] = 20;
+        }
     }
-    map = mapping_loop(e, p, n, dag_type);
+    for (i = 1 ; i <= n ; i++) {
+        printf("task %d period : %d, execution time : %d\n", i, p[i], e[i]);
+    }
+    for (int i = 1 ; i <= n ; i++) {
+        total_execution_time += e[i];
+        total_period += p[i];
+    }
+    printf("totla execution time : %f\n", total_execution_time);
+    printf("totla period : %f\n", total_period);
+    printf("Schedulability : %f\n", total_period/total_execution_time);
+    printf("-----------------------------------\n");
+
+    while (opt_period) {
+
+        for (int i = 1 ; i <= n ; i++) {
+            if (total_period/total_execution_time < 1){
+                printf(" %d task period : %dms to ", i, p[i]);
+                if (p[i] == 1) {
+                    p[i] = 5;
+                }
+                else if (p[i] == 5) {
+                    p[i] = 10;
+                }
+                else if (p[i] == 10) {
+                    p[i] = 20;
+                }
+                printf(" %dms.\n", p[i]);
+            }
+
+        }
+        for (int i = 1 ; i <= n ; i++) { 
+            update_period += p[i];
+        }
+        total_period = update_period;
+        printf("update total period : %fms\n", update_period);
+        update_period = 0;
+
+        if (total_period/total_execution_time >= 1){
+            for (int j = 1 ; j <= n ; j++) {
+                printf("%d task execution time : %dms,  period : %dms\n", j, e[j], p[j]);
+            }
+            printf("optimalzation complet!\n");
+            opt_period = false;
+            return 0;
+        }
+    }
 
     return 0;
 }
 
-
-static int mapping_loop(int e[], int p[], int n, int dag_type) {
-    //find optimal period task, like Branch&Bound...
-    double schedule = 0;
-    double utilization = 0;
-
-    for (int i = 1; i <= n; i++) {
-        printf("%d, %d \n", e[i], p[i]);
-
-
-    }
-
-    
-
-    return 0;
-} 
 
 
 static int Delay_C(int e[], int p[], int dag_type){
 
     return 0;
 }
+
