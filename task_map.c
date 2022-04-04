@@ -212,6 +212,169 @@ static int run_mapping(int dag_type, int e[], int p[], long secs, long usecs) {
 
 
 static int Delay_C(int e[], int p[], int dag_type){
+    int count = 0;
+    int cycle_count = 0;
+    int sub_delay_time = 0;
+    bool period1 = false;
+    bool period2 = false;
+    bool period3 = false;
+    bool period4 = false;
+    int sysnc_count = 0;
+
+    int worst_delay = 0;
+    bool depend1 = false; // priority
+    bool depend2 = false;
+    bool depend3 = false;
+    bool depend4 = false;
+
+
+    while (count < 1000){
+	    printf("  %d ms  \n", count);
+	    if (count % (int)p[1] == 0) { 
+		    period1 = true;
+	    }
+	    if (count % (int)p[2] == 0) { 
+		    period2 = true;
+	    }
+	    if (count % (int)p[3] == 0) {
+		    period3 = true; 
+	    }
+	    if (count % (int)p[4] == 0) {
+		    period4 = true; 
+	    }
+	    //printf(" %d %d %d %d\n", period1, period2, period3, period4);
+
+	    if (sysnc_count == count) { 
+		    if (period1 == 1) {
+                printf("1");
+			    if (depend1 == false) {
+				    depend1 = true;
+				    cycle_count = 0 + e[1];
+				    sysnc_count = sysnc_count + e[1];
+				    period1 = false;
+				    printf("just run 1\n");
+				    count ++;
+			    }
+			    else if ((depend1 == true) && (depend2 == true)) {
+				    cycle_count = cycle_count + e[1];
+				    sysnc_count = sysnc_count + e[1];
+				    sub_delay_time += e[1]; // sub delay timer start
+				    period1 = false;
+				    printf("twice run 1\n");
+				    count ++;
+			    }
+			    else if ((depend1 == true) && (depend2 == false)) {
+				    depend1 = true;
+				    cycle_count = 0 + e[1];
+				    sysnc_count = sysnc_count + e[1];
+				    period1 = false;
+				    printf("renew run 1\n");
+				    count ++;
+			    }
+		    }
+
+		    else if (period2 == 1) {
+			    if ((depend2 == false) && (depend1 == true)) {
+				    depend2 = true;
+				    cycle_count = cycle_count + e[2];
+				    sysnc_count = sysnc_count + e[2];
+				    period2 = false;
+				    printf("run 2\n");
+				    count ++;
+				    if (sub_delay_time) {
+					    sub_delay_time += e[2];
+				    }
+			    }
+			    else if (depend2 == true) {
+				    cycle_count += e[2];
+				    sysnc_count += e[2];
+				    period2 = false;
+				    printf("run 2 again\n");
+				    count ++;
+				    if (sub_delay_time) {
+					    sub_delay_time += e[2];
+				    }
+			    }
+			    else {
+				    cycle_count += e[2];
+				    sysnc_count += e[2];
+				    period2 = false;
+				    count ++;
+			    }
+		    }
+
+		    else if (period3 == 1) {
+			    if ((depend3 == false) && (depend2 == true)) {
+				    depend3 = true;
+				    cycle_count = cycle_count + e[3];
+				    sysnc_count = sysnc_count + e[3];
+				    period3 = false;
+				    printf("run 3\n");
+				    count ++;
+				    if (sub_delay_time) {
+					    sub_delay_time += e[3];
+				    }
+			    }
+			    else if (depend3 == true) {
+				    cycle_count += e[3];
+				    sysnc_count += e[3];
+				    period3 = false;
+				    printf("run 3 again\n");
+				    count ++;
+				    if (sub_delay_time) {
+					    sub_delay_time += e[3];
+				    }
+			    }
+			    else {
+				    cycle_count += e[3];
+				    sysnc_count += e[3];
+				    period3 = false;
+				    count ++;
+			    }
+		    }
+
+		    else if (period4 == 1) {
+			    if ((depend4 == false) && (depend3 == true)) {
+				    cycle_count = cycle_count + e[4];
+				    sysnc_count = sysnc_count + e[4];
+				    period4 = false;
+				    printf("run 4\n");
+				    if (worst_delay < cycle_count) {
+					    worst_delay = cycle_count;
+				    }
+				    printf("End-to-End Delay : %d\n", cycle_count);
+				    depend1 = false;
+				    depend2 = false;
+				    depend3 = false;
+				    cycle_count = 0;
+				    if (sub_delay_time =! 0) {
+					    depend1 = true;
+					    cycle_count = sub_delay_time + e[4];
+					    sub_delay_time = 0;
+				    }
+				    count ++;
+			    }
+			    else {
+				    cycle_count += e[4];
+				    sysnc_count += e[4];
+				    period4 = false;
+				    count ++;
+			    }
+
+		    }
+
+		    else {
+			    cycle_count ++;
+			    sysnc_count ++;
+			    count ++;
+			    //printf("delay 1ms\n");
+		    }
+	    }
+	    else if (sysnc_count != count) {
+		    count ++;
+	    }
+    }
+    printf("worst case End-to-End Delay : %d ms\n", worst_delay);
 
     return 0;
 }
