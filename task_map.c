@@ -38,22 +38,26 @@ enum dag_type {A, B, C, D};
 //enum execution_type {TE, DE};
 
 static int parse_options(int argc, char *argv[], int *dag_type, int e[]);
-static int run_mapping(int dag_type, int e[], long secs, long usecs);
+static int run_mapping(int dag_type, int e[], int p[], long secs, long usecs);
 static int get_n(int dag_type);
+static int mapping_loop(int e[], int p[], int n, int dag_type);
+static int Delay_C(int e[], int p[], int dag_type);
 
 int main(int argc, char *argv[]) {
 
     int e[argc-2];
+    int p[argc-2];
     int dag_type;
     struct model m;
     struct task t;
     int map;
     long secs, usecs;
 
+
     map = parse_options(argc, argv, &dag_type, e);
 
     if (map == 0) {
-        map = run_mapping(dag_type, e, secs, usecs);
+        map = run_mapping(dag_type, e, p, secs, usecs);
     }
     else if (map <0) {
         return EXIT_FAILURE;
@@ -61,6 +65,7 @@ int main(int argc, char *argv[]) {
 }
 
 static int parse_options(int argc, char *argv[], int *dag_type, int e[]) {
+    //parse a parameters and setting an options.
     int i, n, opt;
 
     if (strcmp(argv[optind], "a") == 0 || strcmp(argv[optind], "A") == 0) {
@@ -103,9 +108,8 @@ static int parse_options(int argc, char *argv[], int *dag_type, int e[]) {
     return 0;
 }
 
-
-
-static int get_n(int dag_type) {
+static int get_n(int dag_type) { 
+    //dag type convert to number.
     switch (dag_type) {
     case A:
         return 4;
@@ -120,35 +124,45 @@ static int get_n(int dag_type) {
     }
 }
 
-static int run_mapping(int dag_type, int e[], long secs, long usecs) {
+static int run_mapping(int dag_type, int e[], int p[], long secs, long usecs) {
+    //Runnable mapped roughest period Task.
     printf("runnable mapping in tasks\n");
 
     int task1 = 1;
     int task5 = 5;
     int task10 = 10;
     int task20 = 20;
-    int i;
+    int i, map;
     int n = get_n(dag_type);
-    int p[n];
+
+
     for (i = 1 ; i <= n ; i++) {
-        if (e[i] <= task1) {
-            p[i] = task1;
-        }
-        else if ((e[i] > task1) && (e[i] <= task5)) {
-            p[i] = task5;
-        }
-        else if ((e[i] > task5) && (e[i] <= task10)) {
-            p[i] = task10;
-        }
-        else if ((e[i] > task10) && (e[i] <= task20)) {
-            p[i] = task20;
-        }
-        printf("runnable %d's period : %d\n", i, p[i]);
+        p[i] = task20;
+    }
+    map = mapping_loop(e, p, n, dag_type);
+
+    return 0;
+}
+
+
+static int mapping_loop(int e[], int p[], int n, int dag_type) {
+    //find optimal period task, like Branch&Bound...
+    double schedule = 0;
+    double utilization = 0;
+
+    for (int i = 1; i <= n; i++) {
+        printf("%d, %d \n", e[i], p[i]);
+
 
     }
 
+    
+
+    return 0;
+} 
 
 
+static int Delay_C(int e[], int p[], int dag_type){
 
-
+    return 0;
 }
