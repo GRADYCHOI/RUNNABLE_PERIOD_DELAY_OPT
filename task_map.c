@@ -42,6 +42,7 @@ static int parse_options(int argc, char *argv[], int *dag_type, int e[]);
 static int run_mapping(int dag_type, int e[], int p[], long secs, long usecs);
 static int get_n(int dag_type);
 static int Delay_C(int e[], int p[], int dag_type);
+int lcm(int a,int b);
 
 
 int main(int argc, char *argv[]) {
@@ -62,7 +63,7 @@ int main(int argc, char *argv[]) {
         map = run_mapping(dag_type, e, p, secs, usecs);
     }
     if (delay_c == 0) {
-        delay_c = Delay_C(e, p, dag_type);
+        //delay_c = Delay_C(e, p, dag_type);
     }
     else if (map <0) {
         return EXIT_FAILURE;
@@ -133,7 +134,7 @@ static int get_n(int dag_type) {
 static int run_mapping(int dag_type, int e[], int p[], long secs, long usecs) {
     //Runnable mapped roughest period Task.
     printf("-----------------------------------\n");
-    printf("runnable mapping in tasks\n");
+    printf("initial runnable mapping in tasks\n");
 
     int i, map;
     int n = get_n(dag_type);
@@ -143,13 +144,11 @@ static int run_mapping(int dag_type, int e[], int p[], long secs, long usecs) {
     double total_period = 0;
     double update_period = 0;
     bool opt_period = true;
-
+    int max_period = 1;
+    int max_execution = 0;
 
     for (i = 1 ; i <= n ; i++) {
-        if (e[i] == 1){
-            p[i] = 1;
-        }
-        else if ((e[i] > 1) && (e[i] <= 5)) {
+        if (e[i] <= 5) {
             p[i] = 5;
         }
         else if ((e[i] > 5) && (e[i] <= 10)) {
@@ -158,52 +157,73 @@ static int run_mapping(int dag_type, int e[], int p[], long secs, long usecs) {
         else if ((e[i] > 10) && (e[i] <= 20)) {
             p[i] = 20;
         }
+        else if ((e[i] > 20) && (e[i] <= 30)) {
+            p[i] = 30;
+        }
     }
-    for (i = 1 ; i <= n ; i++) {
-        printf("task %d period : %d, execution time : %d\n", i, p[i], e[i]);
+
+    for (int k = 1 ; k <= n ; k++) {
+        max_period = lcm(max_period, p[k]);// 
+        printf("%d task execution time : %dms, period : %dms\n", k, e[k], p[k]);
     }
-    for (int i = 1 ; i <= n ; i++) {
-        total_execution_time += e[i];
-        total_period += p[i];
+    for (int k = 1 ; k <= n ; k++) {
+        max_execution = max_execution + (e[k] * (max_period)/p[k]);
     }
-    printf("totla execution time : %f\n", total_execution_time);
-    printf("totla period : %f\n", total_period);
-    printf("Schedulability : %f\n", total_period/total_execution_time);
+    utilization = (float)max_execution/max_period;
+
+    printf("max period : %dms      ", max_period);
+    printf("totla execution time in %dms : %dms     ",max_period, max_execution);
+    printf("so, utilization : %.4f\n", utilization);
     printf("-----------------------------------\n");
 
     while (opt_period) {
-
-        for (int i = 1 ; i <= n ; i++) {
-            if (total_period/total_execution_time < 1){
-                printf(" %d task period : %dms to ", i, p[i]);
-                if (p[i] == 1) {
-                    p[i] = 5;
+        printf("Utilization : %f   ", utilization);
+        max_period = 1;
+        max_execution = 0;
+        if (utilization > 1){ // 유틸리제이션이 1 이상이면 period 업데이트 시작.
+            int max_num = 0;
+            double run_util = 0;
+            int num[n];
+            int array_num = 0;
+            for (int i = 1 ; i <= n ; i++) { 
+                if ((float)e[i]/p[i] > run_util){
+                    run_util = (float)e[i]/p[i];
+                    for (int j = 0 ; j <= n ; j++) {
+                        num[j] = 0;
+                    }
+                    num[i] = 1;
                 }
-                else if (p[i] == 5) {
-                    p[i] = 10;
+                else if ((float)e[i]/p[i] == run_util) {
+                    num[i] = 1;
                 }
-                else if (p[i] == 10) {
-                    p[i] = 20;
-                }
-                printf(" %dms.\n", p[i]);
             }
-
+            printf("largest runnable utilization rate : %f\n", run_util);
+            for (int i = 0 ; i <= n ; i++) { // <--------------------jojue
+                if (num[i] == 1){
+                    p[i] += 5;
+                }
+            }
+            for (int k = 1 ; k <= n ; k++) {
+                max_period = lcm(max_period, p[k]);//
+            }
+            printf("max period : %d\n", max_period);
+            for (int k = 1 ; k <= n ; k++) {
+                max_execution = max_execution + (e[k] * (max_period)/p[k]);
+            }
+            printf("max execution time : %d\n", max_execution);
+            utilization = (float)max_execution/max_period;
+            printf("-------------------------------------------\n");
         }
-        for (int i = 1 ; i <= n ; i++) { 
-            update_period += p[i];
-        }
-        total_period = update_period;
-        printf("update total period : %fms\n", update_period);
-        update_period = 0;
-
-        if (total_period/total_execution_time >= 1){
+        else {
             for (int j = 1 ; j <= n ; j++) {
                 printf("%d task execution time : %dms,  period : %dms\n", j, e[j], p[j]);
             }
-            printf("optimalzation complet!\n");
+            printf("Optimalzation Complet!\n");
             opt_period = false;
-            return 0;
         }
+    
+
+
     }
 
     return 0;
@@ -379,3 +399,15 @@ static int Delay_C(int e[], int p[], int dag_type){
     return 0;
 }
 
+int lcm(int a,int b) {
+    int i,j;
+    int temp; //공배수를 저장할 변수
+    j = (a>b)?a:b; //둘중 큰수를 구함
+    for(i=j;;i++) {
+        if(i%a==0 && i%b==0){
+            temp = i;
+            break;
+        }
+    }
+    return temp;
+}
