@@ -215,8 +215,11 @@ static int run_mapping(int dag_type, int e[], int p[], long secs, long usecs) {
                 max_period = lcm(max_period, p[k]);//
                 total_period += p[k];
                 total_execution_time += e[k];
+            }
+            for (int k = 1 ; k <= n ; k++) {
                 max_execution = max_execution + (e[k] * (max_period)/p[k]);
             }
+
             printf("\nmax period : %d\n", max_period);
             printf("max execution time : %d\n", max_execution);
             printf("total period : %f\n", total_period);
@@ -264,8 +267,8 @@ static int Delay_C(int e[], int p[], int dag_type) {
     bool depend6 = false;
 
 
-    while (count < 500){
-	    printf("  %d ms  \n", count);
+    while (count < 750){
+	    //printf("  %d ms  \n", count);
 	    if (count % p[1] == 0) { 
 		    period1 = true;
 	    }
@@ -282,13 +285,13 @@ static int Delay_C(int e[], int p[], int dag_type) {
 
 	    if (sysnc_count == count) { 
 		    if (period1 == 1) {
-                printf("1");
+                //printf("1");
 			    if (depend1 == false) {
 				    depend1 = true;
 				    cycle_count = 0 + e[1];
 				    sysnc_count = sysnc_count + e[1];
 				    period1 = false;
-				    printf("just run 1\n");
+				    //printf("just run 1\n");
 				    count ++;
 			    }
 			    else if ((depend1 == true) && (depend2 == true)) {
@@ -296,7 +299,7 @@ static int Delay_C(int e[], int p[], int dag_type) {
 				    sysnc_count = sysnc_count + e[1];
 				    sub_delay_time += e[1]; // sub delay timer start
 				    period1 = false;
-				    printf("twice run 1\n");
+				    //printf("twice run 1\n");
 				    count ++;
 			    }
 			    else if ((depend1 == true) && (depend2 == false)) {
@@ -304,7 +307,7 @@ static int Delay_C(int e[], int p[], int dag_type) {
 				    cycle_count = 0 + e[1];
 				    sysnc_count = sysnc_count + e[1];
 				    period1 = false;
-				    printf("renew run 1\n");
+				    //printf("renew run 1\n");
 				    count ++;
 			    }
 		    }
@@ -315,7 +318,7 @@ static int Delay_C(int e[], int p[], int dag_type) {
 				    cycle_count = cycle_count + e[2];
 				    sysnc_count = sysnc_count + e[2];
 				    period2 = false;
-				    printf("run 2\n");
+				    //printf("run 2\n");
 				    count ++;
 				    if (sub_delay_time) {
 					    sub_delay_time += e[2];
@@ -325,7 +328,7 @@ static int Delay_C(int e[], int p[], int dag_type) {
 				    cycle_count += e[2];
 				    sysnc_count += e[2];
 				    period2 = false;
-				    printf("run 2 again\n");
+				    //printf("run 2 again\n");
 				    count ++;
 				    if (sub_delay_time) {
 					    sub_delay_time += e[2];
@@ -345,7 +348,7 @@ static int Delay_C(int e[], int p[], int dag_type) {
 				    cycle_count = cycle_count + e[3];
 				    sysnc_count = sysnc_count + e[3];
 				    period3 = false;
-				    printf("run 3\n");
+				    //printf("run 3\n");
 				    count ++;
 				    if (sub_delay_time) {
 					    sub_delay_time += e[3];
@@ -355,7 +358,7 @@ static int Delay_C(int e[], int p[], int dag_type) {
 				    cycle_count += e[3];
 				    sysnc_count += e[3];
 				    period3 = false;
-				    printf("run 3 again\n");
+				    //printf("run 3 again\n");
 				    count ++;
 				    if (sub_delay_time) {
 					    sub_delay_time += e[3];
@@ -374,7 +377,7 @@ static int Delay_C(int e[], int p[], int dag_type) {
 				    cycle_count = cycle_count + e[4];
 				    sysnc_count = sysnc_count + e[4];
 				    period4 = false;
-				    printf("run 4\n");
+				    //printf("run 4\n");
 				    if (worst_delay < cycle_count) {
 					    worst_delay = cycle_count;
 				    }
