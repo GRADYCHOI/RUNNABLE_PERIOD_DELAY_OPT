@@ -42,6 +42,7 @@ static int parse_options(int argc, char *argv[], int *dag_type, int e[]);
 static int run_mapping(int dag_type, int e[], int p[], long secs, long usecs);
 static int get_n(int dag_type);
 static int Delay_C(int e[], int p[], int dag_type);
+static int Delay_R(int e[], int p[], int dag_type);
 int lcm(int a,int b);
 
 
@@ -53,7 +54,7 @@ int main(int argc, char *argv[]) {
     struct model m;
     struct task t;
     int map;
-    int delay_c;
+    int delay_c = 0, delay_r = 0;
     long secs, usecs;
 
 
@@ -64,6 +65,7 @@ int main(int argc, char *argv[]) {
     }
     if (delay_c == 0) {
         delay_c = Delay_C(e, p, dag_type);
+        delay_r = Delay_R(e, p, dag_type);  
     }
     else if (map <0) {
         return EXIT_FAILURE;
@@ -413,9 +415,20 @@ static int Delay_C(int e[], int p[], int dag_type) {
 		    count ++;
 	    }
     }
-    printf("worst case End-to-End Delay : %d ms\n", worst_delay);
+    printf("Simulation E2E Delay : %d ms\n", worst_delay);
 
     return 0;
+}
+
+
+static int Delay_R(int e[], int p[], int dag_type) {
+    int sum = 0;
+    int n = get_n(dag_type);
+    for (int i = 1; i <= n; i++) {
+        sum += p[i]*2;
+    }
+    printf("Period X 2 E2E Delay : %dms\n", sum);
+    return sum;
 }
 
 int lcm(int a,int b) {
