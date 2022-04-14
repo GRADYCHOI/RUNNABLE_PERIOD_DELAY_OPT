@@ -11,28 +11,6 @@
 /* default options */
 #define N_MAX 20
 
-/* structs */
-struct model {
-    int dag;
-    int priority;
-    int ex_time;
-    int period;
-};
-
-struct runnable {
-    char namne[20];
-    int property;
-    int execution_type;
-    int execution_time;
-};
-
-struct task {
-    int dag;
-    int priority;
-    int ex_time;
-    int period;
-    struct runnable runnable;
-};
 
 enum dag_type {A, B, C, D};
 //enum property {DRP, WP, DSP};
@@ -51,8 +29,6 @@ int main(int argc, char *argv[]) {
     int e[argc-2];
     int p[argc-2];
     int dag_type;
-    struct model m;
-    struct task t;
     int map;
     int delay_c = 0, delay_r = 0;
     long secs, usecs;
@@ -164,32 +140,16 @@ static int run_mapping(int dag_type, int e[], int p[], long secs, long usecs) {
         }
     }
 
-    for (int k = 1 ; k <= n ; k++) {
-        max_period = lcm(max_period, p[k]);// 
-        total_period += p[k];
-        total_execution_time += e[k];
-        printf("%d task execution time : %dms, period : %dms\n", k, e[k], p[k]);
+    for (int i = 1; i <= n; i++) {
+        utilization += (float)e[i]/p[i];        
     }
-    for (int k = 1 ; k <= n ; k++) {
-        max_execution = max_execution + (e[k] * (max_period)/p[k]);
-    }
-    utilization = (float)total_execution_time/total_period;
-    Schedulability = (float)max_execution/max_period;
-
-    printf("max period : %dms      ", max_period);
-    printf("total max execution time in max period : %dms     ", max_execution);
-    printf("so, Schedulability : %.4f\n", Schedulability);
-    printf("total period : %fms      ", total_period);
-    printf("total execution time : %fms      ", total_execution_time);
+   
     printf("Utilization : %f      \n", utilization);
     printf("-----------------------------------\n");
 
     while (opt_period) {
-        max_period = 1;
-        max_execution = 0;
-        total_period = 0;
-        total_execution_time = 0;
-        if (Schedulability > 1){ // 유틸리제이션이 1 이상이면 period 업데이트 시작.
+       
+        if (utilization > 0.67){ // 유틸리제이션이 0.67 이상이면 period 업데이트 시작. RM을 위해.
             int max_num = 0;
             double run_util = 0;
             int num[n];
@@ -206,36 +166,23 @@ static int run_mapping(int dag_type, int e[], int p[], long secs, long usecs) {
                     num[i] = 1;
                 }
             }
-            printf("largest runnable utilization rate : %f\n", run_util);
+            //printf("largest runnable utilization rate : %f\n", run_util);
             for (int i = 0 ; i <= n ; i++) { // <--------------------jojue
                 if (num[i] == 1){
                     p[i] += 5;
                 }
             }
+            
+            utilization = 0;
             for (int k = 1 ; k <= n ; k++) {
-                printf("%d execution time : %d , period : %d\n", k, e[k], p[k]);
-                max_period = lcm(max_period, p[k]);//
-                total_period += p[k];
-                total_execution_time += e[k];
-            }
-            for (int k = 1 ; k <= n ; k++) {
-                max_execution = max_execution + (e[k] * (max_period)/p[k]);
-            }
-
-            printf("\nmax period : %d\n", max_period);
-            printf("max execution time : %d\n", max_execution);
-            printf("total period : %f\n", total_period);
-            printf("total execution time : %f\n", total_execution_time);
-
-            Schedulability = (float)max_execution/max_period;
-
-            utilization = (float)total_execution_time/total_period;
-            printf("Scheduability : %f   \n", Schedulability);
+                utilization += (float)e[k]/p[k];
+            } 
             printf("Utilization : %f \n", utilization);
+            Delay_C(e, p, dag_type);
             printf("-------------------------------------------\n");
         }
         else {
-            printf("Optimalzation Complet!\n");
+            printf("Utilization : %f , Optimazation Complet!\n", utilization);
             for (int j = 1 ; j <= n ; j++) {
                 printf("%d task execution time : %dms,  period : %dms\n", j, e[j], p[j]);
             }
@@ -253,6 +200,19 @@ static int Delay_C(int e[], int p[], int dag_type) {
     int sub_delay_time = 0;
     int sysnc_count = 0;
     int worst_delay = 0;
+    int priority[n];
+    int temp;
+
+    for (int i = 1; i < n; i++) {
+        for (int j = 1+1; j <= n; j++) {
+            if (e[i] > e[j]) {
+                priority[i-1] = e[j];
+            }
+        }
+    }
+    for (int i = 0; i <= n; i++) {
+        printf("%d\n", priority[i]);
+    }
 
     bool period1 = false;
     bool period2 = false;
@@ -383,7 +343,7 @@ static int Delay_C(int e[], int p[], int dag_type) {
 				    if (worst_delay < cycle_count) {
 					    worst_delay = cycle_count;
 				    }
-				    printf("End-to-End Delay : %d\n", cycle_count);
+				    //printf("End-to-End Delay : %d\n", cycle_count);
 				    depend1 = false;
 				    depend2 = false;
 				    depend3 = false;
