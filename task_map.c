@@ -43,6 +43,7 @@ int main(int argc, char *argv[]) {
         delay_c = Delay_C(e, p, dag_type);
         delay_r = Delay_R(e, p, dag_type);  
     }
+
     else if (map <0) {
         return EXIT_FAILURE;
     }
@@ -167,7 +168,7 @@ static int run_mapping(int dag_type, int e[], int p[], long secs, long usecs) {
                 }
             }
             //printf("largest runnable utilization rate : %f\n", run_util);
-            for (int i = 0 ; i <= n ; i++) { // <--------------------jojue
+            for (int i = 0 ; i <= n ; i++) { 
                 if (num[i] == 1){
                     p[i] += 5;
                 }
@@ -190,6 +191,7 @@ static int run_mapping(int dag_type, int e[], int p[], long secs, long usecs) {
             opt_period = false;
         }
     }
+    
     return 0;
 }
 
@@ -204,8 +206,15 @@ static int Delay_C(int e[], int p[], int dag_type) {
     int data_seq[n];
     int task_exec[n];
     int start;
-    flag[0] = 0; 
-    data_seq[0] = 0;
+    int exec_seq[n];
+    int seq = 1;
+
+    for (int i = 0; i <= n; i++){
+        priority[i] = 0;
+        data_seq[i] = 0;
+        flag[0] = 0; 
+        exec_seq[0] = 0;
+    }
 
     for (int i = 1; i <= n; i++) {    // priority setting
         int temp = 1;
@@ -219,18 +228,20 @@ static int Delay_C(int e[], int p[], int dag_type) {
                 }
             }
         }
-        priority[i] = temp;
+        if (priority[temp] == 0) {
+            priority[temp] = i;
+        }
+        else if (priority[temp] != 0) {
+            temp++;
+            priority[temp] = i;
+        }
         task_exec[i] = e[i];
     }
 
     printf("priority : ");
-    for (int i = 1; i <= n; i++) {
-        printf("%d ", priority[i]);
-        flag[i] = 1;
-    }
     printf("\n");
 
-    while (count < 100){
+    while (count < 10000){
         printf("--------\nnow time : %dms\n", count);
         int flag_sum = 0;
         int data_seq_sum = 0;
@@ -245,35 +256,31 @@ static int Delay_C(int e[], int p[], int dag_type) {
         for (int i = 1; i <= n; i++) {
             flag_sum = flag_sum + flag[i];
         }
-        printf("\n");
         
         for (int i = 1; i <= n; i++) {
             if (flag[priority[i]] == 1) { 
-
                 task_exec[priority[i]]--;
-                if (task_exec[priority[1]] != e[priority[1]]) start = 1;
                 printf("%d task execute\n", priority[i]);
                 count++;
-                if (start == 1) data_age++;
+                data_age++;
 
-                if (task_exec[priority[i]] == 0) {
-                    if ((i == 1) && (data_seq[i] == 1) && (data_seq[i+1] == 0)) {
-                        data_age = 1;
+                if (task_exec[priority[i]] == 0) { //task의 동작이 끝난면
+                    if (priority[i] == seq) {
+                        if ((seq == 1) && (data_seq[2] == 0)) data_age = e[priority[seq]];
+                        data_seq[seq] = 1;
+                        seq++;
                     }
-                    data_seq[i] = 1;
                     flag[priority[i]] = 0;
                     printf("%d task end\n", priority[i]);
-                    if (priority[i] == n) {
-                        for(int j = 1; j <= n; j++) {
-                            data_seq_sum = data_seq_sum + data_seq[i];
-                        }
+                    for (int j = 1; j <= n; j++) {
+                        data_seq_sum += data_seq[j];
                     }
                 }
                 if (data_seq_sum == n) {
                     printf("Delay : %dms \n", data_age);
                     if (data_age >= worst_delay) worst_delay = data_age;
                     data_age = 0;
-                    start = 0;
+                    seq = 1;
                     for (int j = 1; j <= n; j++) {
                         data_seq[j] = 0;
                     }
@@ -287,8 +294,11 @@ static int Delay_C(int e[], int p[], int dag_type) {
         }
 
     }
-    printf("Simulation E2E Delay : %d ms\n", worst_delay);
-
+    for (int i = 1; i <= n; i++) {
+        printf("%d ", p[i]);
+    }
+    printf("\nWorst Case Simulation E2E Delay : %d ms\n", worst_delay);
+   
     return 0;
 }
 
