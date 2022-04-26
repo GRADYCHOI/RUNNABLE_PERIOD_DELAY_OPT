@@ -23,6 +23,7 @@ static int Delay_C(int e[], int p[], int dag_type);
 static int Delay_2(int e[], int p[], int dag_type);
 static int Delay_R(int e[], int p[], int dag_type);
 int lcm(int a,int b);
+static int Response_c(int i, int e[], int p[], int n, int priority[], int value);
 
 
 int main(int argc, char *argv[]) {
@@ -41,9 +42,9 @@ int main(int argc, char *argv[]) {
         map = run_mapping(dag_type, e, p, secs, usecs);
     }
     if (delay_c == 0) {
-        delay_c = Delay_C(e, p, dag_type);
         delay_2 = Delay_2(e, p, dag_type);  
         delay_r = Delay_R(e, p, dag_type);
+        delay_c = Delay_C(e, p, dag_type);
     }
 
     else if (map <0) {
@@ -240,17 +241,17 @@ static int Delay_C(int e[], int p[], int dag_type) {
         task_exec[i] = e[i];
     }
 
-    printf("priority : ");
-    printf("\n");
+    //printf("priority : ");
+    //printf("\n");
 
     while (count < 10000){
-        printf("--------\nnow time : %dms\n", count);
+        //printf("--------\nnow time : %dms\n", count);
         int flag_sum = 0;
         int data_seq_sum = 0;
         
         for (int i = 1; i <= n; i++) {
             if (count % p[i] == 0) {
-                printf("%d task on\n", i);
+                //printf("%d task on\n", i);
                 flag[i] = 1;
                 task_exec[i] = e[i];
             }
@@ -262,7 +263,7 @@ static int Delay_C(int e[], int p[], int dag_type) {
         for (int i = 1; i <= n; i++) {
             if (flag[priority[i]] == 1) { 
                 task_exec[priority[i]]--;
-                printf("%d task execute\n", priority[i]);
+                //printf("%d task execute\n", priority[i]);
                 count++;
                 data_age++;
 
@@ -273,13 +274,13 @@ static int Delay_C(int e[], int p[], int dag_type) {
                         seq++;
                     }
                     flag[priority[i]] = 0;
-                    printf("%d task end\n", priority[i]);
+                    //printf("%d task end\n", priority[i]);
                     for (int j = 1; j <= n; j++) {
                         data_seq_sum += data_seq[j];
                     }
                 }
                 if (data_seq_sum == n) {
-                    printf("Delay : %dms \n", data_age);
+                    //printf("Delay : %dms \n", data_age);
                     if (data_age >= worst_delay) worst_delay = data_age;
                     data_age = 0;
                     seq = 1;
@@ -296,10 +297,10 @@ static int Delay_C(int e[], int p[], int dag_type) {
         }
 
     }
-    for (int i = 1; i <= n; i++) {
-        printf("%d ", p[i]);
-    }
-    printf("\nWorst Case Simulation E2E Delay : %d ms\n", worst_delay);
+    //for (int i = 1; i <= n; i++) {
+    //    printf("%d ", p[i]);
+    //}
+    printf("E2E Delay with RM simulator : %d ms\n", worst_delay);
    
     return 0;
 }
@@ -310,12 +311,41 @@ static int Delay_2(int e[], int p[], int dag_type) {
     for (int i = 1; i <= n; i++) {
         sum += p[i]*2;
     }
-    printf("Period X 2 E2E Delay : %dms\n", sum);
+    printf("E2E Delay with Period X 2   : %d ms\n", sum);
     return sum;
 }
  
 static int Delay_R(int e[], int p[], int dag_type) {
     int n = get_n(dag_type);
+    int priority[n];
+    int response[n];
+    int sum = 0;
+
+    for (int i = 1; i <= n; i++) {    // priority setting
+        int temp = 1;
+        for (int j = 1; j <= n; j++) {
+            if (i == j) {
+                continue;
+            }
+            else {
+                if (p[i] > p[j]) {
+                    temp++;
+                }
+            }
+        }
+        priority[i] = temp;
+        if (priority[i-1] == priority[i]) {
+            priority[i]++;
+        }
+    }    
+    
+    for (int i = 1; i <= n; i++) {
+        int value = e[priority[i]];
+        response[i] = Response_c(i, e, p, n, priority, value);
+        sum = sum + response[i] + p[priority[i]];
+    }
+    printf("E2E Delay with WCRT         : %d ms\n", sum);
+
     return 0;
 }
 
@@ -330,4 +360,24 @@ int lcm(int a,int b) {
         }
     }
     return temp;
+}
+
+static int Response_c(int i, int e[], int p[], int n, int priority[], int value) {
+    int total = 0;
+    int sum = value; //value로 바꿔
+
+    for (int j = 1; j < i; j++) {
+        int upper = 0;
+        if (sum % p[priority[j]] != 0){
+            upper = (sum / p[priority[j]]) + 1;
+        }
+        else upper = sum / p[priority[j]];
+        total = total + (upper * e[priority[j]]);
+    }    
+    total = total + e[priority[i]];
+
+    if (value != total) Response_c(i, e, p, n, priority, total);
+
+    return total;
+
 }
