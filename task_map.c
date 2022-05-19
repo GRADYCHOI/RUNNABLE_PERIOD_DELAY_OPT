@@ -241,11 +241,8 @@ static int Delay_C(int e[], int p[], int dag_type) {
         task_exec[i] = e[i];
     }
 
-    //printf("priority : ");
-    //printf("\n");
 
     while (count < 10000){
-        //printf("--------\nnow time : %dms\n", count);
         int flag_sum = 0;
         int data_seq_sum = 0;
         
@@ -274,7 +271,6 @@ static int Delay_C(int e[], int p[], int dag_type) {
                         seq++;
                     }
                     flag[priority[i]] = 0;
-                    //printf("%d task end\n", priority[i]);
                     for (int j = 1; j <= n; j++) {
                         data_seq_sum += data_seq[j];
                     }
@@ -295,13 +291,8 @@ static int Delay_C(int e[], int p[], int dag_type) {
             count++;
             if(data_seq[1] == 1) data_age++;
         }
-
     }
-    //for (int i = 1; i <= n; i++) {
-    //    printf("%d ", p[i]);
-    //}
     printf("E2E Delay with RM simulator : %d ms\n", worst_delay);
-   
     return 0;
 }
 

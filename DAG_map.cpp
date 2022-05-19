@@ -11,22 +11,8 @@
 
 using namespace std;
 
-/* default options */
-#define N_MAX 20
-
-
-enum dag_type {A, B, C, D};
-//enum property {DRP, WP, DSP};
-//enum execution_type {TE, DE};
-
-static int parse_options(int argc, char *argv[], int *dag_type, int e[]);
-static int run_mapping(int dag_type, int e[], int p[], long secs, long usecs);
-static int get_n(int dag_type);
-static int Delay_C(int e[], int p[], int dag_type);
-static int Delay_2(int e[], int p[], int dag_type);
-static int Delay_R(int e[], int p[], int dag_type);
-int lcm(int a,int b);
-static int Response_c(int i, int e[], int p[], int n, int priority[], int value);
+int critical_path(int e[], vector<vector<int>> run, int num);
+int dfs(int delay_time, int count, int num, vector<vector<int>> run, int e[]);
 
 int main(int argc, char *argv[]) {
     int number;
@@ -64,6 +50,39 @@ int main(int argc, char *argv[]) {
         
         cout << endl;
 	}
+    cout << "Find Critical Path" << endl;
+    critical_path(e, runnable, number);
 
 	return 0;
+}
+
+int critical_path(int e[], vector<vector<int>> run, int num) {
+
+    int count = 1; 
+    int delay_time = 0;
+    cout << e[count];
+    cout << e[run[count][count-1]];  
+    dfs(delay_time, count, num, run, e);
+    
+    return delay_time;
+}
+
+int dfs(int delay_time, int count, int num, vector<vector<int>> run, int e[]) {
+    if (count > num) {
+        printf("SDFSDF");
+        return delay_time;// count 말고 프랙티스하게 경로이동을 잡는게 좋을듯, 예외처리도
+    //끝까지 말고 경로 끝나면으로.
+    //각 패스의 딜레이를 배열에 넣고 가장 오래걸리는거 비교, 그러려면 해당 딜레이의 dag도 알아야함
+    }
+    else {
+        printf("DDD");
+        delay_time += e[count];
+        cout << delay_time;
+        for (int i = 0; i < num; i++) {
+            cout << run[count][i];
+            count++;
+            dfs(delay_time, count, num, run, e);
+        }
+    }
+    return 0;
 }

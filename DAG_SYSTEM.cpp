@@ -19,7 +19,7 @@ enum dag_type {A, B, C, D};
 //enum property {DRP, WP, DSP};
 //enum execution_type {TE, DE};
 
-static int DAG_parse(int dag_type, int e[], vector<vector<int> run(number, vector<int> {}));
+static int DAG_parse(int number, int p[], int e[], vector<vector<int>> run);
 static int parse_options(int argc, char *argv[], int *dag_type, int e[]);
 static int run_mapping(int dag_type, int e[], int p[], long secs, long usecs);
 static int get_n(int dag_type);
@@ -35,20 +35,24 @@ int main(int argc, char *argv[]) {
     int e[argc-2];
     int p[argc-2];
     int dag_type;
-    int map;
-    int DAG;
+    int map = 0;
+    int DAG = 0;
     int delay_c = 0, delay_2 = 0, delay_r = 0;
     long secs, usecs;
-    int n = get_n(dag_type)
-    vector<vector<int>> runnable(n, vector<int> {});
 
 
     map = parse_options(argc, argv, &dag_type, e);
-    DAG = DAG_parse(dag_type, e, runnable);
+    int n = get_n(dag_type);
+    vector<vector<int>> runnable(n+1, vector<int> {});
 
     if (map == 0) {
         map = run_mapping(dag_type, e, p, secs, usecs);
     }
+
+    if (DAG == 0) {
+        DAG = DAG_parse(n, p, e, runnable);
+    }
+
     if (delay_c == 0) {
         delay_2 = Delay_2(e, p, dag_type);  
         delay_r = Delay_R(e, p, dag_type);
@@ -120,13 +124,45 @@ static int get_n(int dag_type) {
         return -1;
     }
 }
+// 주기도 가져오자!!
+static int DAG_parse(int number, int p[], int e[], vector<vector<int>> run) {
+    int count = 1;
+    bool DAG = true;
+    cout << "Runnable count : " << number << endl;
 
-static int DAG_parse(int dag_type, int e[], vector<vector<int> run(number, vector<int> {})) {
+    while (count <= number) {
+        int k;
+        int exe;
+        cout << "Please write " << count << " Runnable's DAG Number : ";
+        cin >> k;
+        for (int i = 0; i < k; i++) {
+            int d;
+            cout << "Where? : ";
+            cin >> d;
+            run[count].insert(run[count].begin()+i, d);
+        }
+        count++;
+    }
+    cout << endl;
 
+    for (int i = 1; i <= number; i++) {
+        cout << i << " Runnable's Execution Time : " << e[i] << endl;
+    }
+    for (int i = 1; i <= number; i++) {
+        cout << i << " Runnable's Period Time    : " << p[i] << endl;
+    }
+    for (int i = 1; i <= number; i++) {
+        cout << i << " Runnable's DAG            : ";
+        for (auto v : run[i]) {
+            cout << v << " ";
+        }
+        cout << endl;
+    }
 
-
+    return 0;
 
 }
+// 크리티컬패스 찾는 알고리즘 구상
 
 
 static int run_mapping(int dag_type, int e[], int p[], long secs, long usecs) {
