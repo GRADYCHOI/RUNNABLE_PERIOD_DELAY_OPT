@@ -11,8 +11,7 @@
 
 using namespace std;
 
-int critical_path(int e[], vector<vector<int>> run, int num);
-int dfs(int delay_time, int count, int num, vector<vector<int>> run, int e[]);
+int dfs(int &delay_time, int &count, int num, vector<vector<int>> run, int e[]);
 
 int main(int argc, char *argv[]) {
     int number;
@@ -51,23 +50,14 @@ int main(int argc, char *argv[]) {
         cout << endl;
 	}
     cout << "Find Critical Path" << endl;
-    critical_path(e, runnable, number);
+    int critical_delay = 0, critical_count = 1;
+    dfs(critical_delay, critical_count, number, runnable, e);
+    
 
 	return 0;
 }
 
-int critical_path(int e[], vector<vector<int>> run, int num) {
-
-    int count = 1; 
-    int delay_time = 0;
-    cout << e[count];
-    cout << e[run[count][count-1]];  
-    dfs(delay_time, count, num, run, e);
-    
-    return delay_time;
-}
-
-int dfs(int delay_time, int count, int num, vector<vector<int>> run, int e[]) {
+int dfs(int &delay_time, int &count, int num, vector<vector<int>> run, int e[]) {
     if (count > num) {
         printf("SDFSDF");
         return delay_time;// count 말고 프랙티스하게 경로이동을 잡는게 좋을듯, 예외처리도
