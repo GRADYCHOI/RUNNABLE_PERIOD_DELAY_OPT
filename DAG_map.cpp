@@ -11,7 +11,7 @@
 
 using namespace std;
 
-int dfs(int &delay_time, int &count, int num, vector<vector<int>> run, int e[]);
+int dfs(int delay_time, int count, int num, vector<vector<int>> run, int e[]);
 
 int main(int argc, char *argv[]) {
     int number;
@@ -20,7 +20,7 @@ int main(int argc, char *argv[]) {
     cout << "Runnable count : ";
     cin >> number;
 
-    vector<vector<int>> runnable(number+1, vector<int>{ });
+    vector<vector<int>> runnable(number+1, vector<int> (number, 0));
 
     int e[number] = { };
     while(count <= number) {
@@ -34,7 +34,8 @@ int main(int argc, char *argv[]) {
         for (int i = 0; i < k; i++) {
             int d;
             cin >> d;
-            runnable[count].insert(runnable[count].begin()+i, d);
+            //runnable[count].insert(runnable[count].begin()+i, d);  // insert 말고 바꾸는거로 하는게 좋을듯.
+            runnable[count][i] = d;//이거로 가자
         }
         cout << count << " Runnable's DAG write finish" << endl;
         count++;
@@ -50,28 +51,35 @@ int main(int argc, char *argv[]) {
         cout << endl;
 	}
     cout << "Find Critical Path" << endl;
-    int critical_delay = 0, critical_count = 1;
-    dfs(critical_delay, critical_count, number, runnable, e);
+    int critical_delay = 0, critical_count = 0;
+
+    int b = dfs(critical_delay, critical_count, number, runnable, e);
+    //while (true) {
+//
+  //      int b = dfs(critical_delay, critical_count, number, runnable, e);
+//
+  //  }
     
 
 	return 0;
 }
 
-int dfs(int &delay_time, int &count, int num, vector<vector<int>> run, int e[]) {
+int dfs(int delay_time, int count, int num, vector<vector<int>> run, int e[]) {
+    //count++;
     if (count > num) {
-        printf("SDFSDF");
+        printf("SDFSDF\n\n");
+        //run.clear
         return delay_time;// count 말고 프랙티스하게 경로이동을 잡는게 좋을듯, 예외처리도
     //끝까지 말고 경로 끝나면으로.
     //각 패스의 딜레이를 배열에 넣고 가장 오래걸리는거 비교, 그러려면 해당 딜레이의 dag도 알아야함
     }
-    else {
-        printf("DDD");
+    else { // i값을 놓는 것도 필요함 ex) next_dag = i 이런식으로
+        printf("%d", count);
         delay_time += e[count];
-        cout << delay_time;
+        cout << "delay = " << delay_time <<endl;
         for (int i = 0; i < num; i++) {
-            cout << run[count][i];
-            count++;
-            dfs(delay_time, count, num, run, e);
+            cout << "dag : " << run[count][i] << endl;
+            if (run[count][i] != 0) dfs(delay_time, count, num, run, e); // 여기가 문제인듯
         }
     }
     return 0;
