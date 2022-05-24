@@ -51,36 +51,36 @@ int main(int argc, char *argv[]) {
         cout << endl;
 	}
     cout << "Find Critical Path" << endl;
-    int critical_delay = 0, critical_count = 0;
+    int critical_delay = 0, critical_count = 1, next_dag = 1;
 
     int b = dfs(critical_delay, critical_count, number, runnable, e);
-    //while (true) {
-//
-  //      int b = dfs(critical_delay, critical_count, number, runnable, e);
-//
-  //  }
+    printf("delay Time : %d\n", b);
     
-
 	return 0;
 }
 
 int dfs(int delay_time, int count, int num, vector<vector<int>> run, int e[]) {
     //count++;
-    if (count > num) {
-        printf("SDFSDF\n\n");
+    //if (count > num) {
+    //    printf("SDFSDF\n\n");
         //run.clear
-        return delay_time;// count 말고 프랙티스하게 경로이동을 잡는게 좋을듯, 예외처리도
+    //    return delay_time;// count 말고 프랙티스하게 경로이동을 잡는게 좋을듯, 예외처리도
     //끝까지 말고 경로 끝나면으로.
     //각 패스의 딜레이를 배열에 넣고 가장 오래걸리는거 비교, 그러려면 해당 딜레이의 dag도 알아야함
-    }
-    else { // i값을 놓는 것도 필요함 ex) next_dag = i 이런식으로
-        printf("%d", count);
+    //}
+    if (count <= num) { // i값을 놓는 것도 필요함 ex) next_dag = i 이런식으로
+        printf("current runnable : %d\n", count);
         delay_time += e[count];
         cout << "delay = " << delay_time <<endl;
         for (int i = 0; i < num; i++) {
-            cout << "dag : " << run[count][i] << endl;
-            if (run[count][i] != 0) dfs(delay_time, count, num, run, e); // 여기가 문제인듯
+            if (run[count][i] == 0) continue;
+
+            else {
+                cout << count << "'s dag : " << run[count][i] << endl;
+                dfs(delay_time, run[count][i], num, run, e); // 여기가 문제인듯
+            }
         }
+        printf("\n");
     }
-    return 0;
+    return delay_time;
 }
