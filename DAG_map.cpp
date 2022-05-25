@@ -11,7 +11,7 @@
 
 using namespace std;
 
-int dfs(int delay_time, int count, int num, vector<vector<int>> run, int e[]);
+int dfs(int delay_time, int count, int num, vector<vector<int>> run, int e[], vector<int> delay);
 int critical_path(int num, vector<vector<int>> run, int e[]);
 
 int main(int argc, char *argv[]) {
@@ -61,7 +61,7 @@ int critical_path(int num, vector<vector<int>> run, int e[]) {
     vector<int> delay;
     
     int critical_delay = 0, critical_count = 1, next_dag = 1;
-    int b = dfs(critical_delay, critical_count, num, run, e);
+    int b = dfs(critical_delay, critical_count, num, run, e, delay);
     delay.push_back(b);
 
     for (auto d : delay) {
@@ -72,7 +72,7 @@ int critical_path(int num, vector<vector<int>> run, int e[]) {
     return 0;
 }
 
-int dfs(int delay_time, int count, int num, vector<vector<int>> run, int e[]) {
+int dfs(int delay_time, int count, int num, vector<vector<int>> run, int e[], vector<int> delay) {
     //count++;
     //if (count > num) {
     //    printf("SDFSDF\n\n");
@@ -90,7 +90,8 @@ int dfs(int delay_time, int count, int num, vector<vector<int>> run, int e[]) {
 
             else {
                 cout << count << "'s dag : " << run[count][i] << endl;
-                dfs(delay_time, run[count][i], num, run, e); // 여기가 문제인듯
+                delay_time = dfs(delay_time, run[count][i], num, run, e, delay); // 여기가 문제인듯
+                
             }
         }
         printf("\n");
@@ -99,6 +100,7 @@ int dfs(int delay_time, int count, int num, vector<vector<int>> run, int e[]) {
         printf("last runnable : %d\n", count);
         delay_time += e[count];
         cout << "delay = " << delay_time <<endl;
+        delay.push_back(delay_time);
         return delay_time;
     }
     return delay_time;
