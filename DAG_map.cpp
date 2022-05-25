@@ -12,6 +12,7 @@
 using namespace std;
 
 int dfs(int delay_time, int count, int num, vector<vector<int>> run, int e[]);
+int critical_path(int num, vector<vector<int>> run, int e[]);
 
 int main(int argc, char *argv[]) {
     int number;
@@ -51,12 +52,24 @@ int main(int argc, char *argv[]) {
         cout << endl;
 	}
     cout << "Find Critical Path" << endl;
-    int critical_delay = 0, critical_count = 1, next_dag = 1;
-
-    int b = dfs(critical_delay, critical_count, number, runnable, e);
-    printf("delay Time : %d\n", b);
+    critical_path(number, runnable, e);
     
 	return 0;
+}
+
+int critical_path(int num, vector<vector<int>> run, int e[]) {
+    vector<int> delay;
+    
+    int critical_delay = 0, critical_count = 1, next_dag = 1;
+    int b = dfs(critical_delay, critical_count, num, run, e);
+    delay.push_back(b);
+
+    for (auto d : delay) {
+        cout << d << " ";
+    }
+    cout << endl;
+
+    return 0;
 }
 
 int dfs(int delay_time, int count, int num, vector<vector<int>> run, int e[]) {
@@ -68,7 +81,7 @@ int dfs(int delay_time, int count, int num, vector<vector<int>> run, int e[]) {
     //끝까지 말고 경로 끝나면으로.
     //각 패스의 딜레이를 배열에 넣고 가장 오래걸리는거 비교, 그러려면 해당 딜레이의 dag도 알아야함
     //}
-    if (count <= num) { // i값을 놓는 것도 필요함 ex) next_dag = i 이런식으로
+    if (count < num) { // i값을 놓는 것도 필요함 ex) next_dag = i 이런식으로
         printf("current runnable : %d\n", count);
         delay_time += e[count];
         cout << "delay = " << delay_time <<endl;
@@ -81,6 +94,12 @@ int dfs(int delay_time, int count, int num, vector<vector<int>> run, int e[]) {
             }
         }
         printf("\n");
+    }
+    else {
+        printf("last runnable : %d\n", count);
+        delay_time += e[count];
+        cout << "delay = " << delay_time <<endl;
+        return delay_time;
     }
     return delay_time;
 }
