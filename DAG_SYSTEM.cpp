@@ -29,7 +29,6 @@ static int Delay_R(int e[], int p[], int dag_type);
 int lcm(int a,int b);
 static int Response_c(int i, int e[], int p[], int n, int priority[], int value);
 
-
 int main(int argc, char *argv[]) {
 
     int e[argc-2];
