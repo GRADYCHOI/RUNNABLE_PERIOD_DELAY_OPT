@@ -13,9 +13,10 @@ using namespace std;
 
 int dfs(int delay_time, int count, int num, vector<vector<int>> run, int e[]);
 int critical_path(int num, vector<vector<int>> run, int e[]);
-int gb_count = 0;
-vector<int> delay(10, 0);
-vector<int> path(1);
+// 전역변수
+int gb_count = 0; // critical path 벡터에 추가하기위한 파라미터
+vector<int> delay(10, 0); // 각 path의 실행 delay 
+vector<int> path(1); // 
 vector<vector<int>> critical_path_dag(10, vector<int>(5,0));
 
 int main(int argc, char *argv[]) {

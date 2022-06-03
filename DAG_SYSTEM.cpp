@@ -161,7 +161,7 @@ static int DAG_parse(int number, int p[], int e[], vector<vector<int>> run) {
     return 0;
 
 }
-// 크리티컬패스 찾는 알고리즘 구상
+// 크리티컬패스 찾는 알고리즘 넣기
 
 
 static int run_mapping(int dag_type, int e[], int p[], long secs, long usecs) {
